@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+  <div class="container my-5">
+    <h2 class="mb-4">Admin Dashboard - Product Management</h2>
+
+    <div class="row">
+      <!-- Add Product Form -->
+      <div class="col-md-4 mb-4">
+        <div class="card p-3 shadow-sm">
+          <h5>Add New Product</h5>
+          <form id="add-product-form">
+            <div class="mb-2">
+              <label class="form-label">Product Name</label>
+              <input type="text" id="title" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Price (₦)</label>
+              <input type="number" id="price" class="form-control" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Category</label>
+              <input type="text" id="category" class="form-control" placeholder="e.g., Shoes, Bags">
+            </div>
+            <div class="mb-2">
+              <label class="form-label">Description</label>
+              <textarea id="description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Product Image</label>
+              <input type="file" id="image" class="form-control" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Upload Product</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Product List Table -->
+      <div class="col-md-8">
+        <div class="card p-3 shadow-sm">
+          <h5>Product Inventory</h5>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Title</th>
+                  <th>Price</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-product-table">
+                <!-- Products dynamically inserted -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadAdminProducts() {
+      const res = await fetch('/api/products');
+      const products = await res.json();
+      const tbody = document.getElementById('admin-product-table');
+      tbody.innerHTML = '';
+
+      products.forEach(p => {
+        tbody.innerHTML += `
+          <tr>
+            <td><img src="${p.image}" style="width:50px; height:50px; object-fit:cover;" class="rounded"></td>
+            <td>${p.title}</td>
+            <td>₦${Number(p.price).toLocaleString()}</td>
+            <td>
+              <button onclick="deleteProduct(${p.id})" class="btn btn-danger btn-sm">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append('title', document.getElementById('title').value);
+      formData.append('price', document.getElementById('price').value);
+      formData.append('category', document.getElementById('category').value);
+      formData.append('description', document.getElementById('description').value);
+      formData.append('image', document.getElementById('image').files[0]);
+
+      await fetch('/api/products', {
+        method: 'POST',
+        body: formData
+      });
+
+      document.getElementById('add-product-form').reset();
+      loadAdminProducts();
+    });
+
+    async function deleteProduct(id) {
+      if (confirm('Are you sure you want to delete this product?')) {
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        loadAdminProducts();
+      }
+    }
+
+    loadAdminProducts();
+  </script>
+</body>
+</html>
