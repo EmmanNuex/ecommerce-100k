@@ -87,37 +87,46 @@
       });
     }
 
-    document.getElementById('add-product-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Uploading...'; // Gives instant feedback!
-    submitBtn.disabled = true;
-
-    try {
-        const formData = new FormData();
-        formData.append('title', document.getElementById('title').value);
-        formData.append('price', document.getElementById('price').value);
-        formData.append('category', document.getElementById('category').value);
-        formData.append('description', document.getElementById('description').value);
-        formData.append('image', document.getElementById('image').files[0]);
-
-        await fetch('/api/products', {
-            method: 'POST',
-            body: formData
-        });
-
-        document.getElementById('add-product-form').reset();
+    async function deleteProduct(id) {
+      if (confirm('Are you sure you want to delete this product?')) {
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
         loadAdminProducts();
-    } catch (err) {
-        console.error('Upload failed', err);
-    } finally {
-        submitBtn.textContent = originalText; // Reset button
-        submitBtn.disabled = false;
+      }
     }
-});
 
+    document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Uploading...'; 
+      submitBtn.disabled = true;
+
+      try {
+          const formData = new FormData();
+          formData.append('title', document.getElementById('title').value);
+          formData.append('price', document.getElementById('price').value);
+          formData.append('category', document.getElementById('category').value);
+          formData.append('description', document.getElementById('description').value);
+          formData.append('image', document.getElementById('image').files[0]);
+
+          await fetch('/api/products', {
+              method: 'POST',
+              body: formData
+          });
+
+          document.getElementById('add-product-form').reset();
+          loadAdminProducts();
+      } catch (err) {
+          console.error('Upload failed', err);
+      } finally {
+          submitBtn.textContent = originalText; 
+          submitBtn.disabled = false;
+      }
+    });
+
+    // Load products on initial page load
+    loadAdminProducts();
   </script>
 </body>
 </html>
